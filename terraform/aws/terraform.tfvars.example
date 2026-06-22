@@ -1,0 +1,10 @@
+aws_region   = "ap-northeast-2"
+cluster_name = "mlops-test"
+key_name     = "your-key-pair-name"
+
+# generate with: openssl rand -hex 16
+rke2_token = "REPLACE_WITH_SECURE_TOKEN"
+
+# tighten these for production
+allowed_ssh_cidrs = ["YOUR_IP/32"]
+allowed_api_cidrs = ["YOUR_IP/32"]

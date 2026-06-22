@@ -1,0 +1,94 @@
+# rook-ceph cluster values
+# helm install rook-ceph-cluster rook-release/rook-ceph-cluster -n rook-ceph -f rook-ceph-cluster.yaml
+
+operatorNamespace: rook-ceph
+
+clusterSpec:
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 1
+  dashboard:
+    enabled: true
+    ssl: false
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      # On AWS: /dev/xvdf is the attached EBS volume
+      # On-prem: replace with actual device (e.g., /dev/sdb)
+      - name: "mlops-test-ceph-0"
+        devices:
+          - name: "xvdf"
+      - name: "mlops-test-ceph-1"
+        devices:
+          - name: "xvdf"
+      - name: "mlops-test-ceph-2"
+        devices:
+          - name: "xvdf"
+  placement:
+    osd:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.rook-ceph/osd
+                  operator: In
+                  values: ["true"]
+      tolerations:
+        - key: storage
+          operator: Equal
+          value: ceph
+          effect: NoSchedule
+
+cephBlockPools:
+  - name: replicapool
+    spec:
+      failureDomain: host
+      replicated:
+        size: 3
+    storageClass:
+      enabled: true
+      name: ceph-block
+      isDefault: true
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+
+cephFileSystems:
+  - name: ceph-filesystem
+    spec:
+      metadataPool:
+        replicated:
+          size: 3
+      dataPools:
+        - failureDomain: host
+          replicated:
+            size: 3
+      metadataServer:
+        activeCount: 1
+        activeStandby: true
+    storageClass:
+      enabled: true
+      name: ceph-filesystem
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+
+cephObjectStores:
+  - name: ceph-objectstore
+    spec:
+      metadataPool:
+        failureDomain: host
+        replicated:
+          size: 3
+      dataPool:
+        failureDomain: host
+        replicated:
+          size: 3
+      gateway:
+        port: 80
+        instances: 1
+    storageClass:
+      enabled: true
+      name: ceph-bucket
+      reclaimPolicy: Delete

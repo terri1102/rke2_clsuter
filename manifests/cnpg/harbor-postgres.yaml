@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: harbor-postgres
+  namespace: harbor
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "128MB"
+
+  bootstrap:
+    initdb:
+      database: harbor
+      owner: harbor
+
+  storage:
+    storageClass: ceph-block
+    size: 10Gi
+
+  monitoring:
+    enablePodMonitor: true

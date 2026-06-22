@@ -1,0 +1,61 @@
+# Argo CD values
+# helm repo add argo https://argoproj.github.io/argo-helm
+# helm install argocd argo/argo-cd -n argocd --create-namespace -f argocd.yaml
+
+global:
+  domain: argocd.52.78.115.77.nip.io
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    tls: true
+
+configs:
+  params:
+    server.insecure: false
+
+  cm:
+    oidc.config: |
+      name: GitHub
+      issuer: https://dex.52.78.115.77.nip.io
+      clientID: argocd
+      clientSecret: $oidc.dex.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - groups
+
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:admin, applications, *, */*, allow
+      p, role:admin, clusters, *, *, allow
+      p, role:admin, repositories, *, *, allow
+      g, mlops-admins, role:admin
+
+redis-ha:
+  enabled: false
+
+controller:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+applicationSet:
+  enabled: true
+
+notifications:
+  enabled: true

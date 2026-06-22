@@ -1,0 +1,60 @@
+# MLflow values (community chart: community-charts/mlflow)
+# helm repo add community-charts https://community-charts.github.io/helm-charts
+# helm install mlflow community-charts/mlflow -n mlops --create-namespace -f mlflow.yaml
+
+backendStore:
+  databaseMigration: true
+  postgres:
+    enabled: true
+    # CloudNativePG cluster endpoint
+    host: "mlflow-postgres-rw.mlops.svc.cluster.local"
+    port: 5432
+    database: mlflow
+    user: mlflow
+    # secret created separately from CloudNativePG cluster secret
+    password:
+      secretName: mlflow-postgres-app
+      secretKey: password
+
+defaultArtifactRoot: "s3://mlflow-artifacts"
+
+artifactRoot:
+  s3:
+    enabled: true
+    # Ceph ObjectStore S3-compatible endpoint
+    awsDefaultRegion: ""
+    awsAccessKeyId:
+      secretName: ceph-s3-secret
+      secretKey: AWS_ACCESS_KEY_ID
+    awsSecretAccessKey:
+      secretName: ceph-s3-secret
+      secretKey: AWS_SECRET_ACCESS_KEY
+    mlflowS3EndpointUrl: "http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local"
+
+serviceMonitor:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/start"
+  hosts:
+    - host: mlflow.52.78.115.77.nip.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: mlflow-tls
+      hosts:
+        - mlflow.52.78.115.77.nip.io
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi

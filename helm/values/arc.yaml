@@ -1,0 +1,17 @@
+# Actions Runner Controller (ARC) values
+# helm repo add actions-runner-controller https://actions-runner-controller.github.io/actions-runner-controller
+# helm install arc oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller \
+#   -n arc-systems --create-namespace -f arc.yaml
+
+# Controller
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+metrics:
+  controllerManagerAddr: ":8080"
+  listenerAddr: ":8080"
+  listenerEndpoint: "/metrics"

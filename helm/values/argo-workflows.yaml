@@ -1,0 +1,57 @@
+# Argo Workflows values
+# helm repo add argo https://argoproj.github.io/argo-helm
+# helm install argo-workflows argo/argo-workflows -n argo --create-namespace -f argo-workflows.yaml
+
+workflow:
+  serviceAccount:
+    create: true
+    name: argo-workflow
+
+controller:
+  workflowNamespaces:
+    - argo
+    - mlops
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  metricsConfig:
+    enabled: true
+
+server:
+  authModes:
+    - sso
+  sso:
+    issuer: https://dex.52.78.115.77.nip.io
+    clientId:
+      name: argo-workflows-sso
+      key: clientId
+    clientSecret:
+      name: argo-workflows-sso
+      key: clientSecret
+    redirectUrl: https://argo-workflows.52.78.115.77.nip.io/oauth2/callback
+    rbac:
+      enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - argo-workflows.52.78.115.77.nip.io
+    tls:
+      - secretName: argo-workflows-tls
+        hosts:
+          - argo-workflows.52.78.115.77.nip.io
+
+artifactRepository:
+  s3:
+    endpoint: rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local
+    bucket: argo-artifacts
+    insecure: true
+    accessKeySecret:
+      name: ceph-s3-secret
+      key: AWS_ACCESS_KEY_ID
+    secretKeySecret:
+      name: ceph-s3-secret
+      key: AWS_SECRET_ACCESS_KEY

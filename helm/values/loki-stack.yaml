@@ -1,0 +1,43 @@
+# Loki stack (Loki + Promtail + OpenTelemetry Collector)
+# helm repo add grafana https://grafana.github.io/helm-charts
+# helm install loki grafana/loki -n monitoring -f loki-stack.yaml
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: s3
+    s3:
+      endpoint: http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local
+      bucketnames: loki-chunks
+      region: ""
+      access_key_id: ""       # from secret via envFrom
+      secret_access_key: ""   # from secret via envFrom
+      s3forcepathstyle: true
+      insecure: true
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  limits_config:
+    retention_period: 744h   # 31 days
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+write:
+  replicas: 0
+read:
+  replicas: 0
+backend:
+  replicas: 0

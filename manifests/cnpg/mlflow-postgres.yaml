@@ -1,0 +1,39 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mlflow-postgres
+  namespace: mlops
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      work_mem: "16MB"
+
+  bootstrap:
+    initdb:
+      database: mlflow
+      owner: mlflow
+
+  storage:
+    storageClass: ceph-block
+    size: 20Gi
+
+  backup:
+    retentionPolicy: "7d"
+    barmanObjectStore:
+      destinationPath: s3://cnpg-backups/mlflow
+      endpointURL: http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local
+      s3Credentials:
+        accessKeyId:
+          name: ceph-s3-secret
+          key: AWS_ACCESS_KEY_ID
+        secretAccessKey:
+          name: ceph-s3-secret
+          key: AWS_SECRET_ACCESS_KEY
+
+  monitoring:
+    enablePodMonitor: true

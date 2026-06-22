@@ -1,0 +1,17 @@
+# rook-ceph operator values
+# helm repo add rook-release https://charts.rook.io/release
+# helm install rook-ceph rook-release/rook-ceph -n rook-ceph --create-namespace -f rook-ceph-operator.yaml
+
+crds:
+  enabled: true
+
+monitoring:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

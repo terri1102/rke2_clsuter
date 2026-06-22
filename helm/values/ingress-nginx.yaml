@@ -1,0 +1,36 @@
+# ingress-nginx — hostNetwork DaemonSet on worker-0 (EIP attached)
+# On-prem: same config works; attach EIP equivalent (fixed IP) to the ingress node
+
+controller:
+  kind: DaemonSet
+  hostNetwork: true
+  hostPort:
+    enabled: true
+    ports:
+      http: 80
+      https: 443
+
+  # Pin to worker-0 which has the EIP
+  nodeSelector:
+    ingress-ready: "true"
+
+  tolerations: []
+
+  # No LoadBalancer needed — traffic comes in via hostNetwork
+  service:
+    type: ClusterIP
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+  config:
+    use-forwarded-headers: "true"
+    compute-full-forwarded-for: "true"
+    use-proxy-protocol: "false"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi

@@ -1,0 +1,15 @@
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+*.tfplan
+
+# kubeconfig
+*.kube/
+kubeconfig*
+
+# Secrets
+*.pem
+*.key
+*-secret.yaml

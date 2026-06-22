@@ -1,0 +1,103 @@
+# kube-prometheus-stack values
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f kube-prometheus-stack.yaml
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    kubeApiserverAvailability: true
+    kubePrometheusNodeRecording: true
+
+alertmanager:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-url: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/auth"
+      nginx.ingress.kubernetes.io/auth-signin: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/start"
+    hosts:
+      - alertmanager.52.78.115.77.nip.io
+    tls:
+      - secretName: alertmanager-tls
+        hosts:
+          - alertmanager.52.78.115.77.nip.io
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 1Gi
+    additionalScrapeConfigs:
+      - job_name: rook-ceph
+        static_configs:
+          - targets: ["rook-ceph-mgr.rook-ceph.svc.cluster.local:9283"]
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-url: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/auth"
+      nginx.ingress.kubernetes.io/auth-signin: "https://oauth2-proxy.52.78.115.77.nip.io/oauth2/start"
+    hosts:
+      - prometheus.52.78.115.77.nip.io
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.52.78.115.77.nip.io
+
+grafana:
+  adminPassword: ""  # set via secret
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.52.78.115.77.nip.io
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.52.78.115.77.nip.io
+  persistence:
+    enabled: true
+    storageClassName: ceph-block
+    size: 10Gi
+  grafana.ini:
+    auth.generic_oauth:
+      enabled: true
+      name: OAuth2
+      allow_sign_up: true
+      client_id: grafana
+      scopes: openid profile email groups
+      auth_url: https://dex.52.78.115.77.nip.io/auth
+      token_url: https://dex.52.78.115.77.nip.io/token
+      api_url: https://dex.52.78.115.77.nip.io/userinfo
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      searchNamespace: ALL
+
+# scrape control-plane metrics exposed by RKE2
+kubeControllerManager:
+  enabled: true
+kubeScheduler:
+  enabled: true
+kubeEtcd:
+  enabled: true
+  endpoints: []  # populated from terraform outputs

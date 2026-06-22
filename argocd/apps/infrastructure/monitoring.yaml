@@ -12,7 +12,7 @@ spec:
       helm:
         valueFiles:
           - $values/helm/values/kube-prometheus-stack.yaml
-    - repoURL: https://github.com/YOUR_ORG/k8s-clusters
+    - repoURL: https://github.com/terri1102/rke2_clsuter
       targetRevision: main
       ref: values
   destination:
@@ -40,7 +40,7 @@ spec:
       helm:
         valueFiles:
           - $values/helm/values/loki-stack.yaml
-    - repoURL: https://github.com/YOUR_ORG/k8s-clusters
+    - repoURL: https://github.com/terri1102/rke2_clsuter
       targetRevision: main
       ref: values
   destination:
@@ -67,7 +67,7 @@ spec:
       helm:
         valueFiles:
           - $values/helm/values/otel-collector.yaml
-    - repoURL: https://github.com/YOUR_ORG/k8s-clusters
+    - repoURL: https://github.com/terri1102/rke2_clsuter
       targetRevision: main
       ref: values
   destination:

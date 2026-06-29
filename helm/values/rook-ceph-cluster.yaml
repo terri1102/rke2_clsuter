@@ -28,6 +28,12 @@ clusterSpec:
         devices:
           - name: "xvdf"
   placement:
+    mon:
+      tolerations:
+        - key: storage
+          operator: Equal
+          value: ceph
+          effect: NoSchedule
     osd:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:

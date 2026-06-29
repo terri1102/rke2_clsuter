@@ -251,7 +251,7 @@ resource "aws_instance" "ceph_osd" {
     rke2_token      = var.rke2_token
     server_url      = "https://${aws_instance.control_plane.private_ip}:9345"
     node_labels     = "node-role.rook-ceph/osd=true"
-    node_taints     = "storage=ceph:NoSchedule"
+    node_taints     = ""
   }))
 
   tags = {

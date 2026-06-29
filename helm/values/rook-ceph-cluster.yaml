@@ -18,7 +18,7 @@ cephClusterSpec:
     # On AWS: xvdf (EBS), On-prem: sdb 로 변경
     deviceFilter: "^xvdf$"
   placement:
-    mon:
+    all:
       tolerations:
         - key: storage
           operator: Equal
@@ -32,11 +32,6 @@ cephClusterSpec:
                 - key: node-role.rook-ceph/osd
                   operator: In
                   values: ["true"]
-      tolerations:
-        - key: storage
-          operator: Equal
-          value: ceph
-          effect: NoSchedule
 
 cephBlockPools:
   - name: replicapool

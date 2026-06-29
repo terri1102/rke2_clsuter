@@ -23,21 +23,21 @@ server:
     - server
   # SSO/Dex 배포 시 아래 블록 활성화 (프로덕션용)
   # sso:
-  #   issuer: https://dex.DOMAIN_PLACEHOLDER
+  #   issuer: https://dex.15.165.212.244.nip.io
   #   clientId:
   #     name: argo-workflows-sso
   #     key: clientId
   #   clientSecret:
   #     name: argo-workflows-sso
   #     key: clientSecret
-  #   redirectUrl: https://argo-workflows.DOMAIN_PLACEHOLDER/oauth2/callback
+  #   redirectUrl: https://argo-workflows.15.165.212.244.nip.io/oauth2/callback
   #   rbac:
   #     enabled: true
   ingress:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - argo-workflows.DOMAIN_PLACEHOLDER
+      - argo-workflows.15.165.212.244.nip.io
 
 artifactRepository:
   s3:

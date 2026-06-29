@@ -27,6 +27,16 @@ find "$REPO_ROOT/helm" "$REPO_ROOT/argocd" "$REPO_ROOT/manifests" \
   -exec sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" {} +
 
 echo "Done. All DOMAIN_PLACEHOLDER → $DOMAIN"
+
+# ai-platform repo가 있으면 HARBOR_DOMAIN도 치환
+AI_PLATFORM_DIR="$(dirname "$REPO_ROOT")/ai-platform"
+if [ -d "$AI_PLATFORM_DIR" ]; then
+  find "$AI_PLATFORM_DIR/deploy" \
+    -type f -name "*.yaml" \
+    -exec sed -i "s/HARBOR_DOMAIN/$DOMAIN/g" {} +
+  echo "ai-platform HARBOR_DOMAIN → $DOMAIN"
+fi
+
 echo ""
 echo "Verify with:"
 echo "  grep -r '$DOMAIN' $REPO_ROOT/helm/ | head -5"

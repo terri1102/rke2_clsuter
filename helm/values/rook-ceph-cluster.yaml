@@ -15,8 +15,9 @@ cephClusterSpec:
   storage:
     useAllNodes: true
     useAllDevices: false
-    # On AWS: xvdf (EBS), On-prem: sdb 로 변경
-    deviceFilter: "^xvdf$"
+    # On AWS t3.xlarge+: nvme1n1 (EBS), t3.large 이하: xvdf
+    # On-prem: sdb 로 변경
+    deviceFilter: "^nvme1n1$"
   placement:
     all:
       tolerations:

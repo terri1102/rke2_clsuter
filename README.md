@@ -122,6 +122,50 @@ make status
 
 ---
 
+## ArgoCD app-of-apps 동기화
+
+`bootstrap-argocd` 완료 후 app-of-apps를 수동으로 sync해야 전체 스택 배포 시작됨.
+
+### argocd CLI 설치
+
+```bash
+curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+chmod +x /tmp/argocd
+sudo mv /tmp/argocd /usr/local/bin/argocd
+```
+
+### port-forward (터미널 1)
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443 \
+  --kubeconfig ~/.kube/config-mlops-test
+```
+
+### 로그인 및 sync (터미널 2)
+
+```bash
+argocd login localhost:8080 --insecure --username admin \
+  --password $(kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" --kubeconfig ~/.kube/config-mlops-test | base64 -d)
+
+argocd app sync app-of-apps --prune
+```
+
+### 전체 앱 상태 확인
+
+```bash
+make status
+# 또는
+KUBECONFIG=~/.kube/config-mlops-test kubectl get pods -n rook-ceph
+KUBECONFIG=~/.kube/config-mlops-test kubectl get pods -n monitoring
+KUBECONFIG=~/.kube/config-mlops-test kubectl get pods -n harbor
+```
+
+> **참고:** Rook-Ceph 초기화(5-10분) 완료 후 Harbor, Prometheus, Grafana PVC 바인딩됨.
+> Ceph 준비 전까지 해당 앱들은 Pending 상태가 정상.
+
+---
+
 ## 클러스터 종료
 
 ```bash
@@ -188,6 +232,70 @@ k8s_clusters/
         ├── infrastructure/ # cert-manager, ingress, rook-ceph, monitoring
         └── platform/       # harbor, mlops, cicd
 ```
+
+---
+
+## 환경별 설정 차이 (테스트 vs 프로덕션)
+
+### Argo Workflows 인증
+
+| 항목 | 테스트 환경 | 프로덕션 환경 |
+|------|------------|--------------|
+| `authModes` | `server` (토큰 인증) | `sso` (Dex OAuth) |
+| Dex 필요 | 불필요 | 필요 |
+| RBAC | 없음 | Dex RBAC 적용 |
+
+**테스트 → 프로덕션 전환 시** `helm/values/argo-workflows.yaml` 수정:
+
+```yaml
+# 테스트 (현재)
+server:
+  authModes:
+    - server
+
+# 프로덕션 (Dex 배포 후)
+server:
+  authModes:
+    - sso
+  sso:
+    issuer: https://dex.DOMAIN_PLACEHOLDER
+    clientId:
+      name: argo-workflows-sso
+      key: clientId
+    clientSecret:
+      name: argo-workflows-sso
+      key: clientSecret
+    redirectUrl: https://argo-workflows.DOMAIN_PLACEHOLDER/oauth2/callback
+    rbac:
+      enabled: true
+```
+
+그 후: `argocd app sync argo-workflows --prune`
+
+---
+
+### TLS / cert-manager
+
+| 항목 | 테스트 환경 | 프로덕션 환경 |
+|------|------------|--------------|
+| Ingress TLS | 없음 (http) | cert-manager + Let's Encrypt |
+| Ingress annotation | 없음 | `cert-manager.io/cluster-issuer: letsencrypt-prod` |
+| 도메인 | nip.io (Let's Encrypt 발급 불가) | 실제 도메인 필요 |
+
+> nip.io 도메인은 Let's Encrypt 와일드카드 발급 불가 → 테스트 환경에서는 TLS 없이 HTTP 사용.
+
+**프로덕션 전환 시** 각 Helm values에서 `tls:` 블록 및 `cert-manager.io/cluster-issuer` annotation 활성화.
+
+---
+
+### 인증/보안
+
+| 항목 | 테스트 환경 | 프로덕션 환경 |
+|------|------------|--------------|
+| ArgoCD admin | 초기 랜덤 비밀번호 | SSO(GitHub/LDAP) 연동 |
+| Harbor admin | `admin/Harbor12345` 변경 필요 | LDAP 연동 권장 |
+| Grafana | anonymous 허용 가능 | LDAP/OAuth 연동 |
+| SSH CIDR | `0.0.0.0/0` | VPN IP 대역으로 제한 |
 
 ---
 

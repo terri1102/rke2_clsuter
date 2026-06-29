@@ -20,29 +20,24 @@ controller:
 
 server:
   authModes:
-    - sso
-  sso:
-    issuer: https://dex.52.78.115.77.nip.io
-    clientId:
-      name: argo-workflows-sso
-      key: clientId
-    clientSecret:
-      name: argo-workflows-sso
-      key: clientSecret
-    redirectUrl: https://argo-workflows.52.78.115.77.nip.io/oauth2/callback
-    rbac:
-      enabled: true
+    - server
+  # SSO/Dex 배포 시 아래 블록 활성화 (프로덕션용)
+  # sso:
+  #   issuer: https://dex.DOMAIN_PLACEHOLDER
+  #   clientId:
+  #     name: argo-workflows-sso
+  #     key: clientId
+  #   clientSecret:
+  #     name: argo-workflows-sso
+  #     key: clientSecret
+  #   redirectUrl: https://argo-workflows.DOMAIN_PLACEHOLDER/oauth2/callback
+  #   rbac:
+  #     enabled: true
   ingress:
     enabled: true
     ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
-      - argo-workflows.52.78.115.77.nip.io
-    tls:
-      - secretName: argo-workflows-tls
-        hosts:
-          - argo-workflows.52.78.115.77.nip.io
+      - argo-workflows.DOMAIN_PLACEHOLDER
 
 artifactRepository:
   s3:

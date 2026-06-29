@@ -15,18 +15,8 @@ cephClusterSpec:
   storage:
     useAllNodes: false
     useAllDevices: false
-    nodes:
-      # On AWS: /dev/xvdf is the attached EBS volume
-      # On-prem: replace with actual device (e.g., /dev/sdb)
-      - name: "mlops-test-ceph-0"
-        devices:
-          - name: "xvdf"
-      - name: "mlops-test-ceph-1"
-        devices:
-          - name: "xvdf"
-      - name: "mlops-test-ceph-2"
-        devices:
-          - name: "xvdf"
+    # On AWS: xvdf (EBS), On-prem: sdb (실제 디스크명으로 변경)
+    deviceFilter: "^xvdf$"
   placement:
     mon:
       tolerations:

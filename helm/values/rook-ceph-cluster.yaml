@@ -13,9 +13,9 @@ cephClusterSpec:
     enabled: true
     ssl: false
   storage:
-    useAllNodes: false
+    useAllNodes: true
     useAllDevices: false
-    # On AWS: xvdf (EBS), On-prem: sdb (실제 디스크명으로 변경)
+    # On AWS: xvdf (EBS), On-prem: sdb 로 변경
     deviceFilter: "^xvdf$"
   placement:
     mon:
